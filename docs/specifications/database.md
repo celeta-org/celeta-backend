@@ -325,3 +325,15 @@ Este dump confirma o esquema da seção 5 com estas diferenças e observações:
 | DDL de referência | `celeta_database_v2.sql` citado na spec, não existe no repositório | Criar em T02 a partir deste esquema |
 
 Versão do servidor: MySQL 8.4.13 (LTS). A spec pede 8.0.16+, então está compatível.
+
+## 12. DDL de referência (aceito)
+
+O arquivo `celeta_database_v2.sql` na raiz do repositório é o DDL oficial do esquema. Ele foi usado para criar o banco local e substitui a seção 11 como referência.
+
+As diferenças da seção 11 foram revisadas e aceitas como estão:
+
+- Peso de critério limitado a `0 < weight <= 10`.
+- Sem FK direta de `applications.candidate_profile_id`. A integridade vem da FK composta com `resumes`.
+- Avaliações removidas em cascata quando a candidatura é removida.
+
+Índices e chaves únicas extras servem às FKs compostas e permanecem.

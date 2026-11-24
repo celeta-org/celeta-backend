@@ -35,6 +35,6 @@ Specs por área, na ordem de implementação:
 
 ## Pendências conhecidas
 
-- DDL de referência `celeta_database_v2.sql` ainda não existe. Criar em T02.
-- Ajustes de esquema apontados em [database.md, seção 11](specifications/database.md): limite de peso, FK direta de `applications.candidate_profile_id`, retenção de avaliações.
+- DDL de referência: `celeta_database_v2.sql` na raiz. Migrations em T02 devem partir dele.
+- Diferenças de esquema revisadas e aceitas em [database.md, seção 12](specifications/database.md).
 - Dependências (Argon2id, extração de PDF, upload) só serão instaladas na implementação de cada spec.
