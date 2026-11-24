@@ -1,0 +1,20 @@
+{
+  "name": "celeta-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend da Celeta (MVP acadêmico)",
+  "type": "module",
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --env-file=.env.test --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5",
+    "zod": "^3.23.8"
+  }
+}
