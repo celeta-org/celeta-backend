@@ -105,7 +105,8 @@ DDL: [`database/migrations/001_initial_schema.sql`](database/migrations/001_init
 ### Triagem
 
 1. Extrai texto do PDF no backend e remove identificadores diretos detectáveis.
-2. Envia texto + critérios confirmados ao provedor; resposta JSON validada com Zod.
+2. Gera o texto sanitizado (`resumes.sanitized_text`), que é o único enviado ao provedor e o único exibido ao contratante na fase `BLIND`; resposta JSON validada com Zod.
+   Cada critério volta com resultado, justificativa (`rationale`) e evidência; não existe resultado "parcial".
 3. Critério ausente ou sem evidência → `INSUFFICIENT_EVIDENCE`.
 4. Classificação calculada pelo backend:
    - `REVIEW_REQUIRED`: obrigatório sem evidência, resposta inválida ou falha;
@@ -186,7 +187,7 @@ npm run dev
 | `SESSION_TTL_HOURS` | Validade da sessão |
 | `COOKIE_SECURE` | `true` em produção |
 | `UPLOAD_DIR` | Diretório privado dos PDFs |
-| `UPLOAD_MAX_BYTES` | Tamanho máximo do PDF |
+| `UPLOAD_MAX_BYTES` | Tamanho máximo do PDF (MVP: `5242880`, 5 MB) |
 | `AI_PROVIDER_URL` / `AI_API_KEY` / `AI_MODEL` | Provedor de IA (opcional: sem chave, modo reduzido) |
 | `AI_TIMEOUT_MS` | Timeout das chamadas de IA |
 
