@@ -41,7 +41,7 @@ HTTP → Middleware → Zod → Controller → Use Case → Repository / Integra
 | Schemas | Validação Zod. |
 | Controllers | HTTP → caso de uso. Sem regra de negócio. |
 | Use Cases | Regras de negócio e transações. Sem Express. |
-| Repositories | SQL e mapeamento `snake_case` ↔ `camelCase`. |
+| Repositories | SQL e mapeamento das colunas (`snake_case`, inglês) para o JSON da API (`camelCase`, português). |
 | Integrations | Provedor de IA e sistema de arquivos. |
 
 ```
@@ -129,7 +129,7 @@ score = Σ peso(MET) / Σ peso(MET + NOT_MET) × 100
 - Rotas `/candidato/*` e `/contratante/*` agem sempre sobre o usuário da sessão; nunca recebem `userId`.
 - Paginação: `{ items, nextCursor }` com `?cursor=&limite=`.
 - Erro: `{ code, message, details? }`. HTTP: 400/422 validação, 401 sessão, 403 permissão, 404, 409 duplicidade ou estado inválido, 429 limite de IA, 503 IA indisponível.
-- IA síncrona no MVP, com timeout. Não existe recurso de operação assíncrona (`/jobs/{id}`); o andamento da triagem é lido em `screeningStatus` da candidatura (polling na lista).
+- IA síncrona no MVP, com timeout. Não existe recurso de operação assíncrona (`/jobs/{id}`); o andamento da triagem é lido em `statusTriagem` da candidatura (polling na lista).
 - Arquivos: o PDF nunca é servido direto; as rotas `.../url` devolvem URL assinada de curta duração.
 - `PATCH .../status` e o detalhe da candidatura devolvem `transicoesPermitidas`.
 
