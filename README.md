@@ -121,34 +121,49 @@ score = Σ peso(MET) / Σ peso(MET + NOT_MET) × 100
 
 ## API
 
-Prefixo `/api/v1`, JSON em `camelCase`.
+**Padrões do contrato** (válidos para backend e frontend):
+
+- Prefixo `/api/v1`. Rotas e recursos em português; `{vagaId}`, `{candidaturaId}`, `{curriculoId}` são UUID; `{slug}` é texto.
+- Corpo JSON em `camelCase` com nomes em português (ex.: `vagaId`, `curriculoId`, `justificativa`). Valores de estado continuam os do banco, em inglês e `UPPER_SNAKE_CASE` (`DRAFT`, `BLIND`, `ELIGIBLE`…); a interface traduz.
+- Rotas `/candidato/*` e `/contratante/*` agem sempre sobre o usuário da sessão; nunca recebem `userId`.
+- Paginação: `{ items, nextCursor }` com `?cursor=&limite=`.
+- Erro: `{ code, message, details? }`. HTTP: 400/422 validação, 401 sessão, 403 permissão, 404, 409 duplicidade ou estado inválido, 429 limite de IA, 503 IA indisponível.
+- IA síncrona no MVP, com timeout. Não existe recurso de operação assíncrona (`/jobs/{id}`); o andamento da triagem é lido em `screeningStatus` da candidatura (polling na lista).
+- Arquivos: o PDF nunca é servido direto; as rotas `.../url` devolvem URL assinada de curta duração.
+- `PATCH .../status` e o detalhe da candidatura devolvem `transicoesPermitidas`.
 
 | Método e rota | Acesso | Finalidade |
 | --- | --- | --- |
-| `POST /auth/register` | Público | Criar usuário e perfil |
-| `POST /auth/login` | Público | Iniciar sessão |
-| `POST /auth/logout` | Autenticado | Encerrar sessão |
-| `GET /auth/me` | Autenticado | Usuário e perfil atual |
-| `GET/PATCH /candidate-profile/me` | Candidato | Próprio perfil |
-| `GET/PATCH /employer-profile/me` | Contratante | Próprio perfil |
-| `GET /jobs` | Público | Listar/pesquisar vagas publicadas |
-| `POST /jobs` | Contratante | Criar rascunho |
-| `GET /jobs/:jobId` | Público/dono | Detalhe |
-| `GET /jobs/by-slug/:slug` | Público | Detalhe pelo slug |
-| `PATCH /jobs/:jobId` | Dono | Editar |
-| `POST /jobs/:jobId/criteria/suggestions` | Dono | Sugestões da IA |
-| `POST /jobs/:jobId/criteria/confirm` | Dono | Confirmar critérios |
-| `POST /jobs/:jobId/publish` | Dono | Publicar |
-| `POST /jobs/:jobId/close` | Dono | Encerrar |
-| `GET/POST /resumes` | Candidato | Listar/enviar currículos |
-| `GET /resumes/:resumeId/file` | Autorizado | Baixar PDF |
-| `DELETE /resumes/:resumeId` | Candidato | Arquivar currículo |
-| `POST /jobs/:jobId/applications` | Candidato | Candidatar-se |
-| `GET /applications/me` | Candidato | Minhas candidaturas |
-| `GET /jobs/:jobId/applications` | Dono | Candidaturas (anonimizadas na fase `BLIND`) |
-| `POST /applications/:applicationId/screening` | Dono | Executar/reexecutar triagem |
-| `PATCH /applications/:applicationId/status` | Dono | Avançar ou não selecionar |
-| `PATCH /applications/:applicationId/classification` | Dono | Contestar classificação |
+| `POST /auth/cadastro` | Público | Criar usuário e perfil do papel |
+| `POST /auth/login` | Público | Iniciar sessão (cookie HttpOnly) |
+| `POST /auth/logout` | Autenticado | Revogar sessão |
+| `GET /auth/sessao` | Autenticado | Usuário, papel e perfil atual |
+| `GET/PATCH /candidato/perfil` | Candidato | Consultar/editar próprio perfil |
+| `GET/POST /candidato/curriculos` | Candidato | Listar/enviar currículos (multipart) |
+| `DELETE /candidato/curriculos/{curriculoId}` | Candidato | Arquivar currículo (exclusão lógica) |
+| `GET /candidato/curriculos/{curriculoId}/url` | Candidato | URL assinada de curta duração |
+| `GET /candidato/mural` | Candidato | Vagas recomendadas (paginado, motivos opcionais) |
+| `GET /candidato/candidaturas` | Candidato | Minhas candidaturas |
+| `GET /candidato/candidaturas/{candidaturaId}` | Candidato | Detalhe e linha do tempo do status |
+| `POST /candidato/candidaturas` | Candidato | Candidatar-se: vagaId + curriculoId ou arquivo |
+| `GET /vagas` | Público | Listar vagas publicadas (filtros, q textual) |
+| `GET /vagas/busca?q=` | Público | Busca em linguagem natural; retorna interpretação |
+| `GET /vagas/{slug}` | Público | Detalhe público da vaga |
+| `GET/PATCH /contratante/perfil` | Contratante | Consultar/editar próprio perfil |
+| `GET/POST /contratante/vagas` | Contratante | Listar próprias vagas / criar rascunho |
+| `GET/PATCH /contratante/vagas/{vagaId}` | Dono | Obter/editar vaga |
+| `POST /contratante/vagas/{vagaId}/criterios/sugestoes` | Dono | Sugestões da IA (síncrono, com timeout) |
+| `PUT /contratante/vagas/{vagaId}/criterios` | Dono | Salvar lista revisada (limpa confirmação) |
+| `POST /contratante/vagas/{vagaId}/criterios/confirmar` | Dono | Confirmar critérios |
+| `POST /contratante/vagas/{vagaId}/publicar` | Dono | Publicar |
+| `POST /contratante/vagas/{vagaId}/encerrar` | Dono | Encerrar |
+| `GET /contratante/vagas/{vagaId}/candidaturas` | Dono | Lista com ranking; anônima na fase BLIND |
+| `GET /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}` | Dono | Detalhe (anônimo ou identificado) |
+| `GET /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}/curriculo/url` | Dono (fase IDENTIFIED) | URL assinada do PDF |
+| `POST /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}/triagem` | Dono | Executar/reexecutar triagem |
+| `PATCH /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}/classificacao` | Dono | Contestar classificação (justificativa obrigatória) |
+| `POST /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}/avancar` | Dono | Avançar para a fase 2 (ADVANCED + IDENTIFIED) |
+| `PATCH /contratante/vagas/{vagaId}/candidaturas/{candidaturaId}/status` | Dono | Não selecionar; devolve transicoesPermitidas |
 
 ## Como rodar
 
